@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<!--
+quando		| chi			| cosa		
+------------------------------------------------------------------
+08mar2020	| giorgio323	| MQTT
+			|				| gestiti solo R/W e Monitor
+04apr2020	|				| tasti i e k per movimento servo "fine"
+			|				|
+			|				|
+			|				|
+-->
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {box-sizing: border-box}
+
+/* Set height of body and the document to 100% */
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: Arial;
+}
+
+/* Style tab links */
+.tablink {
+  background-color: #555;
+  color: white;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 17px;
+  width: 25%;
+}
+
+.tablink:hover {
+  background-color: #777;
+}
+
+/* Style the tab content (and add height:100% for full page content) */
+.tabcontent {
+  color: black;
+  display: none;
+  padding: 100px 20px;
+  height: 100%;
+}
+
+#drive_ARI {background-color: white;   }
+#parameters {background-color: white; }
+#Contact   {background-color: white;  }
+#Advanced  {background-color: white;}
+</style>
+</head>
+<body  onload="onLoad()">
+
+	<button class="tablink" onclick="openPage('drive_ARI', this, 'red'   )"  id="defaultOpen">drive ARI</button>
+	<button class="tablink" onclick="openPage('parameters', this, 'green' )">Learn ARI parameters</button>
+	<button class="tablink" onclick="openPage('Advanced'  , this, 'blue'  )">Advanced  </button>
+	<button class="tablink" onclick="openPage('About'    , this, 'orange')">About    </button>
+
+	<div id="drive_ARI" class="tabcontent">
+	  <h3>drive ARI</h3>
+	  <p>in questa pagina guidi ARI con la tastiera</p>
+			
+			<!--
+			<iframe src="192.168.1.45 height="300px" width="100%">
+			<iframe src="https://stuffcube.wordpress.com/">
+			192.168.1.45:81/stream
+				<p>Your browser does not support iframes.</p>
+			</iframe> 
+			
+						<iframe src="https://meet.jit.si/garabombo">
+				<p>Your browser does not support iframes.</p>
+			</iframe> 
+
+			
+
+			
+			<iframe allow="camera; microphone" src = "https://meet.jit.si/testthings"></iframe>
+			-->
+		
+		<table>
+			<col width="80%">
+			<col width="20%">
+			<tr>
+				<td>
+					<table  id="cmdTable1">
+						<!-- questa è una tabella locale con bottoni e valori dedicati
+						// usa i bottoni inviando -1 per identificarsi
+						// si può fare di meglio -->
+						<col width="40%">
+						<col width="40%">
+						<col width="20%">
+						<col width="20%">
+						<col width="10%">
+						<tr>
+							<td>
+								<p style="font-size:20px;">Ari robot control page<br>guida da tastiera  </p>
+							</td>
+							<td> 
+								freccia su e giu': avanti, indietro <br>
+								tasto    "z", "x": sinistra, destra di 5 gradi<br>
+								tasto    "a", "s": sinistra, destra di 90 gradi<br>
+								tasto    "o", "l": camera. guarda avanti, guarda su<br>
+								
+							
+							</td> 
+							<td>
+								<div id ="idConnectionState">
+									status: not Connected
+								</div> 
+							</td>
+							<td>
+								<div align="left" id = "id_heartBeat">
+								</div> 
+							</td>
+
+
+						</tr>
+					</table>
+				</td>
+			</tr>
+
+		</table>
+		<div id="msgDiv">
+			<table >
+				<col width="12%">
+				<col width="12%">
+				<col width="12%">
+				<col width="12%">	
+				<col width="12%">	
+				<col width="12%">	
+				<col width="22%">	
+				<tr>
+					<th>x [mm]</th>
+					<th>y [mm]</th>
+					<th>teta [gradi]</th>
+					<th>rs</th>
+					<th>central [mm]</th>
+					<th>sensore dx [mm]</th>
+					<th>sensore sx [mm]</th>
+				</tr>
+
+				<tr>
+					<td> <span  id="010Id"> 0</td>
+					<td> <span  id="011Id"> 0</td>
+					<td> <span  id="012Id"> 0</td>
+					<td> <span  id="013Id"> 0</td>
+					<td> <span  id="014Id"> 0</td>
+					<td> <span  id="015Id"> 0</td>
+					<td> <span  id="016Id"> 0</td>
+				</tr>	  
+			</table>
+		</div>
+	
+	
+		<br>
+		<div id="xPos_id"> 
+			0
+		</div>
+		<div id="yPos_id"> 
+			0
+		</div>
+		<div id="runState"> 
+			0
+		</div>
+		<div id="alfa"> 
+			0
+		</div>
+		
+		<div id="log"> 
+			
+		</div>
+	</div>
+
+	<div id="parameters" class="tabcontent">
+	  <h3>parameteri ARI</h3>
+	  <p>qui impari i comandi e sperimenti cosa</p> 
+			<!-- 
+			griglia di uscita dati
+			alle funzioni R e W vengono passati gli id per ricostruire le posizioni
+			la griglia verrà poi costuita con uno script a partire dal DB
+		-->
+ 		<div id="writeDiv">
+			<table id="writeTable">
+				<col width="5%">
+				<col width="10%">
+				<col width="10%">
+				<col width="10%">
+				<col width="10%">
+				<col width="55%">	
+				<tr>
+					<th>indice</th>
+					<th>nome</th>
+					<th>Value</th>
+					<th>write</th>
+					<th>read</th>
+					<th>Description</th>
+				</tr>
+				questa tabella è generata automaticamente dal programma ....		
+
+				<tr> <td>0 </td> <td>statoRun </td> <td><input type="text" id="0" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(0)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(0)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>1 </td> <td>odometro </td> <td><input type="text" id="1" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(1)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(1)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>2 </td> <td>raggiorSterzo </td> <td><input type="text" id="2" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(2)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(2)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>3 </td> <td>distanza </td> <td><input type="text" id="3" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(3)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(3)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>4 </td> <td>kpTeta </td> <td><input type="text" id="4" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(4)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(4)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>5 </td> <td>kiTeta </td> <td><input type="text" id="5" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(5)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(5)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>6 </td> <td>tetaRef </td> <td><input type="text" id="6" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(6)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(6)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>7 </td> <td>motorSpeedValue </td> <td><input type="text" id="7" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(7)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(7)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>8 </td> <td>kd_guida </td> <td><input type="text" id="8" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(8)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(8)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>9 </td> <td>kp_guida </td> <td><input type="text" id="9" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(9)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(9)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>10 </td> <td>ki_guida </td> <td><input type="text" id="10" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(10)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(10)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>11 </td> <td>errore </td> <td><input type="text" id="11" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(11)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(11)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>12 </td> <td>distRef </td> <td><input type="text" id="12" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(12)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(12)" class="button button1">read</button> </td> <td> [mm] distanza da manatenere dal muro
+				</td> </tr>
+				<tr> <td>13 </td> <td>MAX_S </td> <td><input type="text" id="13" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(13)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(13)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>14 </td> <td>distanzaOstacolo </td> <td><input type="text" id="14" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(14)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(14)" class="button button1">read</button> </td> <td> [mm] se il sensore centrale legge meno si arresta
+				</td> </tr>
+				<tr> <td>15 </td> <td>xpos </td> <td><input type="text" id="15" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(15)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(15)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>16 </td> <td>ypos </td> <td><input type="text" id="16" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(16)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(16)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>17 </td> <td>teta </td> <td><input type="text" id="17" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(17)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(17)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>18 </td> <td>exeTime </td> <td><input type="text" id="18" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(18)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(18)" class="button button1">read</button> </td> <td> [us] t esecuzione controllo
+				</td> </tr>
+				<tr> <td>19 </td> <td>maxExeTime </td> <td><input type="text" id="19" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(19)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(19)" class="button button1">read</button> </td> <td> [us] t max esecuzione controllo, scrivere a zero per nuova misura
+				</td> </tr>
+				<tr> <td>20 </td> <td>scopeState </td> <td><input type="text" id="20" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(20)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(20)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>21 </td> <td>scopeCmd </td> <td><input type="text" id="21" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(21)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(21)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>22 </td> <td>traccia1 </td> <td><input type="text" id="22" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(22)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(22)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>23 </td> <td>traccia2 </td> <td><input type="text" id="23" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(23)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(23)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>24 </td> <td>traccia3 </td> <td><input type="text" id="24" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(24)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(24)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>25 </td> <td>traccia4 </td> <td><input type="text" id="25" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(25)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(25)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>26 </td> <td>misuraLeft </td> <td><input type="text" id="26" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(26)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(26)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>27 </td> <td>misuraCentral </td> <td><input type="text" id="27" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(27)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(27)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>28 </td> <td>misuraRight </td> <td><input type="text" id="28" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(28)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(28)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>29 </td> <td>nOfSamples </td> <td><input type="text" id="29" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(29)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(29)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>30 </td> <td>BASELINE </td> <td><input type="text" id="30" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(30)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(30)" class="button button1">read</button> </td> <td>larghezza carreggiata in [mm]
+				</td> </tr>
+				<tr> <td>31 </td> <td>ED </td> <td><input type="text" id="31" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(31)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(31)" class="button button1">read</button> </td> <td>empty</td> </tr>
+				<tr> <td>32 </td> <td>GIRO_RUOTA </td> <td><input type="text" id="32" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(32)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(32)" class="button button1">read</button> </td> <td>[mm per impulso*0.5]  sviluppo ruota[mm]</td> </tr>
+				<tr> <td>33 </td> <td>servoPos </td> <td><input type="text" id="33" min="0" value="0" ></td>	<td> <button onclick="writeDataSend(33)" class="button button1">write</button> </td>	<td> <button onclick="readDataSend(33)" class="button button1">read</button> </td> <td>[°]  pos servo in °</td> </tr>
+
+			</table>
+		</div>
+	</div>
+
+	<div id="Advanced" class="tabcontent">
+		<h3>Advanced</h3>
+		<p>missione su marte</p>
+			<table>
+				<col width="80%">
+				<col width="20%">
+				<tr>
+					<td>
+						<table  id="cmdTable1">
+							<!-- questa è una tabella locale con bottoni e valori dedicati
+							// usa i bottoni inviando -1 per identificarsi
+							// si può fare di meglio -->
+							<col width="40%">
+							<col width="40%">
+							<col width="20%">
+							<col width="20%">
+							<col width="10%">
+							<tr>
+								<td>
+									<p style="font-size:20px;">Ari robot control page</p>
+								</td>
+								<td> 
+									<a href="https://stuffcube.wordpress.com/" target="_blank" rel="noopener noreferrer">cosa posso fare? tbd</a> <br>
+									<a href="http://led4run.altervista.org/ari/test.html" target="_blank" rel="noopener noreferrer">Ari ip Addresss tbd</a> <br>
+									<a href="parameters_01.html" target="_blank" rel="noopener noreferrer">pagina parametri</a>
+									<a href="joyStick.html" target="_blank" rel="noopener noreferrer">pagina guida</a>
+								</td> 
+								<td>
+									<div id ="idConnectionState">
+										status: not Connected
+									</div> 
+								</td>
+								<td>
+									<div align="left" id = "id_heartBeat">
+									</div> 
+								</td>
+							</tr>
+								<td>
+									<p><b>Please select your movement:</b></p>
+								</td>
+								<td> 
+									<div align="right">
+									<p><b>set your data</b></p>
+									</div> 
+								</td>
+								<td>
+									<div align="left">
+									</div> 
+								</td>
+								<td>
+									<div align="left">
+									<p><b>move it!</b></p>
+									</div> 
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<form>
+										<input type="radio" name="runMode" value="R;4" checked >(R4) vai con     angolo "teta" <br>
+										<input type="radio" name="runMode" value="R;6">(R6) ruota verso angolo "teta"          <br>
+										<input type="radio" name="runMode" value="R;1">(R1) segui muro sx a distanza "distRef" <br>  
+										<input type="radio" name="runMode" value="R;3">(R3) segui muro dx a distanza "distRef" <br>  
+										<input type="radio" name="runMode" value="R;2">(R2) motori a pari PWM                  <br>  
+									</form>
+								</td>
+								<td> 
+									<div align="right">
+										tetaRef [°], direzione in gradi CCW, è la direzione per i comandi R4 e R6: <br>
+										distanza dal muro [mm], la distanza da tenere dal muro nei comandi R1 e R3: <br>
+										velocità PWM [da 60 a 127]. La velocita di movimento. 60 lenta, 127 veloce: 
+									</div> 
+								</td>
+								<td>
+									<div align="left">
+										<input type="number" id="idTetaRef" value="0" ><br>
+										<input type="number" id="idDistRef" value="0" ><br>
+										<input type="number" id="idVelPwm" min="0" max = "127" value="120" >
+									</div> 
+								</td>
+								<td>
+									<input type="button" onclick="startStopMode()" class="button button1" value="start" id="btnStart"/>
+								</td>
+							</tr>
+							<tr>
+								<td> <p> la sequenza è un programma in javaScript che esegue un algoritmo<br>
+								Questo algoritmo e' "la Sentinella".<br> 
+								Il robot parte seguendo il muro alla sua dx.<br>
+								Giunto all'ostacolo si ferma, si gira di 180° e riprende il movimento seguendo il muro di sx.
+								Prosegue sino a trovare un ostacolo, quindi si ferma e ruota di 180°. La sequenza termina.<br>
+								Il programma si trova nel file "fileSeq.js".
+								
+								</p>
+								</td>
+								<td> 
+								</td>
+								<td>
+									<div id = "id_statoSeq">
+									</div>
+								</td>
+								<td>
+										<button onclick="startSeq()" class="button button1">execute Sequence</button>
+								</td>
+							</tr>
+						</table>
+							<div id="msgDiv">
+							<table>
+								<col width="12%">
+								<col width="12%">
+								<col width="12%">
+								<col width="12%">	
+								<col width="12%">	
+								<col width="12%">	
+								<col width="22%">	
+								<tr>
+									<th>x [mm]</th>
+									<th>y [mm]</th>
+									<th>teta [°]</th>
+									<th>rs</th>
+									<th>central [mm]</th>
+									<th>sensore dx [mm]</th>
+									<th>sensore sx [mm]</th>
+								</tr>
+
+								<tr>
+									<td> <span  id="010Id"> 0</td>
+									<td> <span  id="011Id"> 0</td>
+									<td> <span  id="012Id"> 0</td>
+									<td> <span  id="013Id"> 0</td>
+									<td> <span  id="014Id"> 0</td>
+									<td> <span  id="015Id"> 0</td>
+									<td> <span  id="016Id"> 0</td>
+								</tr>	  
+
+						</table>
+
+						</div>
+
+					</td>
+					<td>
+						<pre id="log">
+						</pre> 
+					</td>
+				</tr>
+			</table>
+			<div>
+				<p id = "display">status: not connected</p>
+			</div>
+			<table id="idMapTable">
+				<col width="80%">
+				<col width="20%">
+				<tr>
+					<td>
+						<div id="plotlyDiv">
+							<!-- Plotly chart will be drawn inside this DIV -->
+						</div>
+					</td>
+					<td>
+						<input class="button button1" id="idBtnClearMap" type="button" value="Clear map" onclick="clearTrace()" />
+					</td>
+				</tr>
+				<tr>
+				</tr>
+				<tr>
+					<td>
+						<div id="plotlyRadarDiv">
+							<!-- Plotly chart will be drawn inside this DIV -->
+						</div>
+					</td>
+					<td>
+						<input class="button button1" id="idBtnScan" type="button" value="Start scan" onclick="btnScan()" />
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div id="plotlyScopeDiv">
+							<!-- Plotly chart will be drawn inside this DIV -->
+						</div>
+					</td>
+					<td>
+						<table>
+						<tr><td>ch1 		</td> <td><input type="text" id="id_ch1" min="0" value="6" ></td></tr>
+						<tr><td>ch2 		</td> <td><input type="text" id="id_ch2" min="0" value="17" ></td></tr>
+						<tr><td>ch3 		</td> <td><input type="text" id="id_ch3" min="0" value="2" ></td></tr>
+						<tr><td>ch4 		</td> <td><input type="text" id="id_ch4" min="0" value="0" ></td></tr>
+						<tr><td>n of samples</td> <td><input type="text" id="id_nOfSample" 	min="0" value="1000" ></td></tr>
+						<tr>
+						<input class="button button1" id="idBtnScope" type="button" value="Start scope" onclick="btnScope()" />
+						</table>
+						</tr>
+					</td>
+				</tr>
+			</table>
+
+
+
+
+
+
+	</div>
+
+	<div id="About" class="tabcontent">
+	  <h3>About</h3>
+	  <p>anda una mail o vienici a trovare: infostuffcube@gmail.com - A canegrate</p>
+	</div>
+
+	<script type="text/javascript" 					src="trace_var.js">			</script>
+	<script  										src="plotly-latest.min.js">	</script>
+	<script type="text/javascript" charset="UTF-8" 	src="polarPlot.js">			</script>
+	<script type="text/javascript" charset="UTF-8" 	src="scope.js">				</script>
+	<script type="text/javascript" charset="UTF-8" 	src="fileSeq.js" >			</script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+
+	<script charset="UTF-8" type = "text/javascript">
+	
+/*
+	http://nokarma.org/2011/02/27/javascript-game-development-keyboard-input/index.html
+
+	https://github.com/jitsi/jitsi-meet/blob/master/doc/api.md
+	
+	da aggiungere:
+	
+		done: rotazione sul posto con altri due tasti
+		done: tasto per fare +/-90 gradi
+		angolo mostrato all'interno di 360
+		retromarcia
+		mettere focus su parte dove gestisco tasti, togliere da iframe
+	
+
+*/	
+	// queste variabili sono viste da tutti i moduli successivi
+	vStatoRun 	= 0;
+	x 			= 0;
+	y 			= 0;
+	teta 		= -9999999999999999;
+	rSterzo 	= 0;
+	central 	= 0;
+	dDx 		= 0;
+	dSx			= 0;
+	
+	msgCnt      = 0;
+
+	vStatoRunOld= 0;
+	vStatoRunGoesToZero = 0
+
+	plotCrated   = 0;
+	polarCreated = 0;
+	
+	var myVar = setInterval(myTimerFunction, 100);
+	
+	var xPos = 0;
+	var yPos = 0;
+
+	var sm 		= 0;
+/*
+	//ridichiarazione di console.log()
+	(function () {
+	// https://stackoverflow.com/questions/20256760/javascript-console-log-to-html
+		var old = console.log;
+		
+		var logger = document.getElementById('log');
+
+		console.log = function () {
+			for (var i = 0; i < arguments.length; i++) {
+				if (typeof arguments[i] == 'object') {
+					logger.innerHTML += (JSON && JSON.stringify ? JSON.stringify(arguments[i], undefined, 2) : arguments[i]) + '<br />';
+				} else {
+					logger.innerHTML += arguments[i] + '<br />';
+				}
+			}
+		}
+	})();
+*/	
+
+	// gestisce il pulsante start / stop
+	// se robot in run vStatoRun != 0 lo ferma
+	// else run  col RunMode definito
+	
+	function startStopMode(){
+		console.log("startStop");
+		
+		var runModeStr  = 'R;0'; // Run mode Id
+		var radios = document.getElementsByName('runMode');
+		
+		// get run mode
+		if (vStatoRun == 0){
+			for (var i = 0, length = radios.length; i < length; i++) {
+				if (radios[i].checked) {
+					// do whatever you want with the checked radio
+					runModeStr = radios[i].value;
+
+					// only one radio can be logically checked, don't check the rest
+					break;
+				}
+			}		
+			
+			var valore = document.getElementById('idTetaRef').value;
+			var msg = "3;6;" + valore.toString();
+			ws.send(msg);
+			console.log(msg)
+			valore = document.getElementById('idDistRef').value;
+			var msg = "3;12;" + valore.toString();
+			ws.send(msg);
+			console.log(msg)
+			valore  = document.getElementById('idVelPwm').value;
+			var msg = "3;7;" + valore.toString();
+			ws.send(msg);
+			
+			//opRunningId = 3; questa variabile è usata dalla gestione scope
+			
+			document.getElementById("btnStart").value= "Stop"
+			
+			console.log(msg)
+		}
+		else{
+			document.getElementById("btnStart").value= "Start"
+		}
+
+
+		// cmd + modo
+		var msg = "3;" + runModeStr;
+		ws.send(msg);
+		console.log(msg)
+		
+		//alert("Hello! I am an alert box!!");
+	}
+
+	/*
+	You can hook it up to keydown and keyup events like this:
+	*/
+	// object
+	var Key = {
+		_pressed: {},
+
+		LEFT: 	37,
+		UP: 	38,
+		RIGHT: 	39,		
+		DOWN: 	40,
+		ZETA: 	90,
+		ICS: 	88,
+		ACHAR: 	65,
+		SCHAR:	83,
+		OCHAR:  79,
+		LCHAR:  76,
+		ICHAR:  73,
+		KCHAR:  75,
+		
+		isDown: function(keyCode) {
+			return this._pressed[keyCode];
+		},
+
+		onKeydown: function(event) {
+			this._pressed[event.keyCode] = true;
+		},
+
+		onKeyup: function(event) {
+			delete this._pressed[event.keyCode];
+		}
+	};
+
+	window.addEventListener('keyup', 	function(event) { Key.onKeyup	(event); }, false);
+	window.addEventListener('keydown', 	function(event) { Key.onKeydown	(event); }, false);	
+
+
+	// apre canali MQTT
+	// pubish outGiorgio323
+	// subscribe
+	function onLoad(){
+		connectState = 0;
+
+		// Create a client instance
+		//client = new Paho.MQTT.Client(location.hostname, Number(location.port), "clientId");
+		client = new Paho.MQTT.Client("broker.mqttdashboard.com", Number(8000), "clientId-1RygBrM9Vb");
+
+		// set callback handlers
+		client.onConnectionLost = onConnectionLost;
+		client.onMessageArrived = onMessageArrived;
+
+		// connect the client
+		client.connect({onSuccess:onConnect}); 
+	}
+	
+	// called when the client connects
+	function onConnect() {
+		// Once a connection has been made, make a subscription and send a message.
+		console.log("onConnect procedure");
+		connectState = 1;
+		client.subscribe("outTopicGiorgio323");
+		client.subscribe("cmdTopicGiorgio323");
+
+		document.getElementById("idConnectionState").innerHTML = "status: connected";
+		//inviaCmd(7, 100);		// velocità
+		
+		// send message
+		// message = new Paho.MQTT.Message("connected"); // payload
+		//message.destinationName = "inTopicGiorgio323";
+		//client.send(message); 
+		
+		
+	}
+	
+	// called when the client loses its connection
+	function onConnectionLost(responseObject) {
+		
+		if (responseObject.errorCode !== 0) {
+			connectState = 0;
+			console.log("onConnectionLost: ");// + responseObject.errorMessage);
+		}
+	}
+ 
+	// called when a message arrives
+	function onMessageArrived(message) {
+//		console.log("onMessageArrived:" + message.payloadString);
+		var messageTime = new Date().toISOString();
+
+		//document.getElementById("topic"  ).innerHTML  = message.destinationName;
+		//document.getElementById("payload").innerHTML  = message.payloadString;
+		//document.getElementById("qos"    ).innerHTML  = message.messageTime;
+
+		var messaggio = message.payloadString;
+//		console.log(messaggio[messaggio.length-1]);
+
+		//if ( messaggio[messaggio.length-1]%2==0)  	document.body.style.background = "red";
+		//else										document.body.style.background = "black";
+
+		//document.getElementById("display").innerHTML  = "data: " + evt.data + " ---";
+		var res 	= messaggio.split(";")
+		//console.log(res);
+		var msgId 	= res[0]	
+		if (msgId == 'M'){
+			plotMonitorData(res);
+		}
+		else 
+		{
+			console.log(res);
+			if (msgId == '1'){
+				readDataResponse(res, callerId);
+				//console.log("onMessageArrived:" + message.payloadString);
+			}		
+			else if (msgId == '3'){
+				writeDataResponse(res);
+				//console.log("onMessageArrived:" + message.payloadString);
+			}
+			else {
+				// Code here for the server answer when not successful
+				console.log("bad");
+			}
+		}
+
+
+	}
+
+
+
+	function readDataSend(_callerId){
+		callerId = _callerId
+		if (_callerId == -1){
+			//var id    = parseFloat(document.getElementById("indicePar").value);
+		}
+		else
+		{
+			var id    = _callerId;
+		}
+
+		// cmd + indice + valore
+		var msg = "1" + ";" + id.toString();
+		message = new Paho.MQTT.Message(msg); // payload
+		message.destinationName = "inTopicGiorgio323";
+		client.send(message);
+		//ws.send(msg);
+		console.log(msg)
+	}
+		
+	function readDataResponse(res, _callerId){
+
+		var msgId 		= parseFloat(res[0])	
+		var indice 		= parseFloat(res[1])
+		var valore 		= parseFloat(res[2])
+		var risultato 	= parseFloat(res[3]);
+		
+		// populate document
+		
+		if (_callerId == -1){
+			document.getElementById("valorePar").value = valore;
+		}
+		else
+		{
+			var campoVal  = _callerId// + "_val"
+			document.getElementById(campoVal).value = valore;
+		}
+		
+		document.getElementById("001Id"    ).innerHTML = indice;
+		document.getElementById("002Id"    ).innerHTML = valore;
+		document.getElementById("003Id"    ).innerHTML = risultato;
+
+		//&alert("Hello! I am an alert box!!");
+	}
+	
+	// indice -1 è un CallerId, identifica il blocco che chiama.
+	// nel caso -1 indice e valore vengono da due celle predefinite
+	// altrimenti l'id delle celle si costruisce a partire dall'indice
+	function writeDataSend(indice){
+		console.log("writeData");
+		
+		if (indice == -1){
+			var id    = parseFloat(document.getElementById("indicePar").value);
+			var value = parseFloat(document.getElementById("valorePar").value);
+		}
+		else
+		{
+			var indx = indice
+			var val  = indice
+			var id    = indice;
+			var value = parseFloat(document.getElementById(val ).value);
+		}
+		// cmd + indice + valore
+		var msg = "3" + ";" + id.toString() + ";" + value.toString();
+		
+		message = new Paho.MQTT.Message(msg); // payload
+		message.destinationName = "inTopicGiorgio323";
+		client.send(message);
+		//ws.send(msg);
+		console.log(msg)
+		
+		//alert("Hello! I am an alert box!!");
+	}
+	
+	function writeDataResponse(res){
+	}
+
+
+
+	/*-------------------------------------------------------
+	
+		chiamato all'arrivo di un pacchetto di monitor (idMsg M)
+		analizza il pacchetto di monitor e aggiorna le
+		variabili globali, mostra i dati sul grafico
+	
+	--------------------------------------------------------*/
+	function plotMonitorData(res){
+		// sono variabili globali
+		x 		= parseFloat(res[1])
+		y 		= parseFloat(res[2])
+		teta 	= parseFloat(res[3])
+		rSterzo = parseFloat(res[4])
+		central = parseFloat(res[5])
+		dDx 	= parseFloat(res[6])
+		dSx		= parseFloat(res[7])
+		
+		vStatoRun= parseFloat(res[8])
+
+		if (dSx == 999) dSx = 999
+		if (dDx == 999) dDx = 999
+
+		var dxSx  	= -dSx*Math.sin(teta);
+		var dySx  	=  dSx*Math.cos(teta);
+		var dxDx  	=  dDx*Math.sin(teta);
+		var dyDx  	= -dDx*Math.cos(teta);
+
+
+		document.getElementById("010Id").innerHTML  = x;
+		document.getElementById("011Id").innerHTML  = y;
+		document.getElementById("012Id").innerHTML  = teta*180/3.14;
+		document.getElementById("013Id").innerHTML  = rSterzo;
+		document.getElementById("014Id").innerHTML  = central;
+		document.getElementById("015Id").innerHTML  = dDx;
+		document.getElementById("016Id").innerHTML  = dSx;
+
+		// mette i dati in array solo se robot in motori
+		// questo per evitare di riepire buffer e rendere lento il browser
+		// 
+		if (vStatoRun) {
+			trace.x.push(x);
+			trace.y.push(y);
+			//trace.teta.push(teta);
+			//trace1.distanzaDavanti.push(res[3]);
+			//trace1.x.push(x);
+			//trace1.y.push(teta);
+			trace1.x.push(x);
+			trace1.y.push(rSterzo);
+		}
+		if (dSx < 500){
+			trace2.x.push(x + dxSx);
+			trace2.y.push(y + dySx);
+		}
+		
+		if (dDx < 500){
+			trace2.x.push(x + dxDx);
+			trace2.y.push(y + dyDx);
+		}
+
+		indice++;
+		
+		var data = [ trace, trace1, trace2];
+		if (plotCrated){
+			Plotly.update('plotlyDiv', data, layout, {showSendToCloud: true});
+		}
+		else {
+			Plotly.newPlot('plotlyDiv', data, layout, {showSendToCloud: true});
+			plotCrated = 1;
+		}
+			
+			
+		// utility
+		
+		if 	((vStatoRun == 0)&&(vStatoRunOld==1)){
+			vStatoRunGoesToZero = 1
+			console.log("runToZero")
+		}
+		else										vStatoRunGoesToZero = 0
+		
+		vStatoRunOld = vStatoRun;
+
+		/*
+		if ((opRunningId == 3)&&(vStatoRunGoesToZero)){		// gestisce scritta bottone stato run
+			document.getElementById("btnStart").value= "Start";
+			opRunningId = 0;
+		}
+		*/
+		
+
+
+
+	}
+
+	
+	// invia un cmd di scrittura valore
+	//
+	function inviaCmd(id, value){
+		// cmd + indice + valore
+		var msg = "3" + ";" + id.toString() + ";" + value.toString();
+		
+		message = new Paho.MQTT.Message(msg); // payload
+		message.destinationName = "inTopicGiorgio323";
+		client.send(message); 
+		
+		//ws.send(msg);
+		console.log(msg)
+	}
+
+	
+	function start2Drive(){
+		sm = 0;
+	}
+	
+	
+	function myStopFunction() {
+	  clearInterval(myVar);
+	}
+	
+	function sleep(milliseconds) {
+	  var start = new Date().getTime();
+	  for (var i = 0; i < 1e7; i++) {
+		if ((new Date().getTime() - start) > milliseconds){
+		  break;
+		}
+	  }
+	}
+
+	var indice = 0;
+	var callerId;
+	
+	/******************************************
+		gestisce i coamndi in arrivo da tastiera
+		
+	
+	
+	*******************************************/
+	function myTimerFunction(){
+
+//	    if( typeof myTimerFunction.alfa == 'undefined' ) {
+	    if( teta == -9999999999999999 ) {
+			myTimerFunction.alfa 	= teta;
+			myTimerFunction.alfaOld = myTimerFunction.alfa;
+			myTimerFunction.pan     = 35;
+		}
+		
+		var smString=[ 'stop', 'run'];
+		var step 	= 5;	
+	
+	
+		// macchina stati movimento in avanti (modo 4)
+		switch (sm){
+		
+			case 0: 
+				if (Key.isDown(Key.UP)){
+					sm = 1;
+					inviaCmd(0, 4);		// modo run 4, avanti angolo alfa
+
+					console.log(smString[sm]);
+				}
+				if (Key.isDown(Key.DOWN)){
+					sm = 2;
+					
+					inviaCmd(14, 0);	// distanza ostacolo messa a zero
+					inviaCmd(7, -120);	// speed negativa
+					inviaCmd(0, 2);		// modo run 2, due motori uguali a Vmotore
+
+					console.log(smString[sm]);
+				}
+				break;
+
+			case 1: 
+				if (!Key.isDown(Key.UP)){
+					sm = 0;
+					console.log(smString[sm]);
+					inviaCmd(0, 0);		// modo run 0, ferma
+				}
+				break;
+
+			case 2: 
+				if (!Key.isDown(Key.DOWN)){
+					sm = 0;
+					console.log(smString[sm]);
+					inviaCmd(0, 0);		// modo run 0, ferma
+					inviaCmd(7, 120);	// speed positiva
+					inviaCmd(14,450);	// distanza ostacolo messa a zero
+				}
+				break;
+				
+		case 99:
+			break;
+		default:
+			sm= 0;
+		}
+		
+		var guidaSpecchiata = 1; // 1 specchiata, - 1 diritta
+		
+		// modifica variabili
+		if (Key.isDown(Key.UP))    yPos++;
+		if (Key.isDown(Key.DOWN))  yPos--;
+		
+		// leggo teta nela caso premuto tasto rotazione
+		var tastoAngoloPremuto = Key.isDown(Key.ZETA) ||Key.isDown(Key.ICS) ||Key.isDown(Key.ACHAR) ||Key.isDown(Key.SCHAR); 
+		if (tastoAngoloPremuto)	{
+			myTimerFunction.alfa 	= teta*180.0/3.14;
+		}
+		
+		// inverto guida per test
+		if (Key.isDown(Key.ZETA))  myTimerFunction.alfa += guidaSpecchiata*step;;
+		if (Key.isDown(Key.ICS))   myTimerFunction.alfa -= guidaSpecchiata*step;;	
+
+		// gira alfa di 90°
+		if (Key.isDown(Key.ACHAR)) myTimerFunction.alfa -= guidaSpecchiata*90;;
+		if (Key.isDown(Key.SCHAR)) myTimerFunction.alfa += guidaSpecchiata*90;;
+		
+		// angolo servo camera
+		if (Key.isDown(Key.OCHAR))  {
+			myTimerFunction.pan  = 45;//25;			// up
+			inviaCmd(33, myTimerFunction.pan);  // invia pan
+		}
+		if (Key.isDown(Key.LCHAR))  {
+			myTimerFunction.pan  = 75;//o110;			// down
+			inviaCmd(33, myTimerFunction.pan); 	// invia pan
+		}
+
+		if (Key.isDown(Key.ICHAR))  {			// alza
+			myTimerFunction.pan  -= 5;;
+			inviaCmd(33, myTimerFunction.pan); 	// invia pan
+		}
+		if (Key.isDown(Key.KCHAR))  {			// abbassa
+			myTimerFunction.pan  += 5;
+			inviaCmd(33, myTimerFunction.pan); 	// invia pan
+		}
+
+		document.getElementById("xPos_id" ).innerHTML 	= xPos;
+		document.getElementById("yPos_id" ).innerHTML 	= yPos;
+		document.getElementById("runState").innerHTML 	= smString[sm];
+		document.getElementById("alfa"    ).innerHTML 	= myTimerFunction.alfa;
+		
+		// se angolo diverso lo invia
+		if (myTimerFunction.alfa != myTimerFunction.alfaOld){
+			
+			inviaCmd(6, myTimerFunction.alfa); // invia teta
+			
+			// se fermo lo faccio ruotare
+			if (sm == 0){
+				sleep(100);
+				inviaCmd(0, 6); // ruota
+			}
+			//myTimerFunction.alfa = 0;
+			console.log(teta);
+		}
+		myTimerFunction.alfaOld = myTimerFunction.alfa;
+	}
+
+	
+/*	
+	// use this to check the keyboard code
+	// or https://www.alt-codes.net/
+	// valgono i valori delle maiuscole
+    window.addEventListener('keydown', function(event) {
+      switch (event.keyCode) {
+        case 37: // Left
+			xPos++;
+			console.log('left');
+        break;
+
+        case 38: // Up
+			yPos++;
+          console.log('up');
+        break;
+
+        case 39: // Right
+
+			xPos--;
+			console.log('right');
+
+        break;
+
+        case 40: // Down
+			yPos++;
+
+          console.log('down');
+
+        break;
+      }
+	  
+	  document.getElementById("xPos_id").innerHTML = xPos;
+	  document.getElementById("yPos_id").innerHTML = yPos;
+	  
+    }, false);
+*/
+
+
+	/*
+	This object tracks the key status of individual keys based on the keydown/keyup events fired by the browser. Using it, we can easily check in our game update code whether a specific key is currently pressed down or not. Now we add the following function to our Player class:
+
+	Player.prototype.update = function() {
+	  if (Key.isDown(Key.UP)) this.moveUp();
+	  if (Key.isDown(Key.LEFT)) this.moveLeft();
+	  if (Key.isDown(Key.DOWN)) this.moveDown();
+	  if (Key.isDown(Key.RIGHT)) this.moveRight();
+	  
+	};
+	  
+	*/  
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// gestione visualizzazione pagine
+		function openPage(pageName,elmnt,color) {
+		  var i, tabcontent, tablinks;
+		  tabcontent = document.getElementsByClassName("tabcontent");
+		  for (i = 0; i < tabcontent.length; i++) {
+			tabcontent[i].style.display = "none";
+		  }
+		  tablinks = document.getElementsByClassName("tablink");
+		  for (i = 0; i < tablinks.length; i++) {
+			tablinks[i].style.backgroundColor = "";
+		  }
+
+		  document.getElementById(pageName).style.display = "block";
+		  elmnt.style.backgroundColor = color;
+		}
+
+		// Get the element with id="defaultOpen" and click on it
+		document.getElementById("defaultOpen").click();
+	</script>
+	   
+	</body>
+</html> 
